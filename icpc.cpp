@@ -710,3 +710,216 @@ TreeNode* Solution::sortedListToBST(ListNode* a)
    TreeNode *r = build(a,t);
    return r;
 }
+
+
+
+//XOR TRIE
+struct node
+{
+    node* p[2];
+    int cnt;
+};
+
+node* newnode()
+{
+    node* t = new node();
+    t->cnt = 1;
+    t->p[1] = NULL;
+    t->p[0] = NULL;
+    return t;
+}
+
+void insert(node* root,ll a)
+{
+    node* temp = root;
+    for(ll i=31;i>=0;i--)
+    {
+        if((1<<i) & a)
+        {
+            if(!temp->p[1])
+                temp->p[1] = newnode();
+            else
+                temp->p[1]->cnt++;
+            temp = temp->p[1];
+            // cout<<1<<" ";
+        }
+        else
+        {
+            if(!temp->p[0])
+                temp->p[0] = newnode();
+            else
+                temp->p[0]->cnt++;
+            temp = temp->p[0];
+            // cout<<0<<" ";
+        }
+    }
+}
+
+ll search (node* root,ll a,ll k)
+{
+    node* temp = root;
+    ll val = 0;
+    for(ll i=31;i>=0;i--)
+    {
+        ll p = (1<<i)&a,q = (1<<i)&k;
+        if(q && p)
+        {
+            if(temp->p[1])
+                val += temp->p[1]->cnt;
+            temp = temp->p[0];
+        }
+        else if (q && !p)
+        {
+            if(temp->p[0])
+                val += temp->p[0]->cnt;
+            temp = temp->p[1];
+        }
+        else if (!q && p)
+        {
+            temp = temp->p[1];
+        }
+        else if (!q && !p)
+            temp = temp->p[0];
+        if(!temp)
+            return val;
+    }
+    return val;
+}
+
+
+int main()
+{
+	ios_base :: sync_with_stdio(false);
+	cin.tie(NULL);
+    int t;
+    cin>>t;
+    while(t--)
+    {
+        ll n,k;
+        cin>>n>>k;
+        ll a[n];
+        for(int i=0;i<n;i++)
+            cin>>a[i];
+        ll p = a[0];
+        
+        node* root = newnode();
+        insert(root,a[0]);
+        ll ans = 0;
+        for(int i=0;i<n;i++)
+        {
+            p = p ^ a[i];
+            ans += search(root,p,k);
+            insert(root,p);
+        }
+        cout<<ans<<endl;
+    }
+}
+
+
+// Suffix Array with Kasai
+struct sf
+{
+    int rnk,nxt,inx;
+};
+
+bool comp(sf a,sf b)
+{
+    if(a.rnk == b.rnk)
+        return a.nxt < b.nxt;
+    return a.rnk < b.rnk;
+}
+
+void suff (sf sffx[],string s)
+{
+    int n = s.size();
+    for(int i=0;i<n;i++)
+    {
+        sffx[i].inx = i,sffx[i].rnk = s[i] ;
+        sffx[i].nxt = (i < n-1) ? s[i+1]  : -1;
+    }
+    sort(sffx,sffx+ n,comp);
+    int inv[n];
+    for(int k=2 ; k < n ;k *= 2)
+    {
+        inv[sffx[0].inx] = 0;
+        int rank = 0;
+        int prv = sffx[0].rnk;
+        sffx[0].rnk = 0;
+        for(int i=1;i<n;i++)
+        {
+            if(sffx[i].rnk == prv && sffx[i].nxt == sffx[i-1].nxt)
+                prv = sffx[i].rnk,sffx[i].rnk = rank;
+            else
+                prv = sffx[i].rnk,sffx[i].rnk = ++rank;
+            inv[sffx[i].inx] = i;
+        }
+        for(int i=0;i<n;i++)
+        {
+            sffx[i].nxt = (sffx[i].inx + k < n)? sffx[inv[sffx[i].inx + k]].rnk : -1;
+        }
+        sort(sffx,sffx+n,comp);
+    }
+}
+
+int kasai (sf sffx[],string s)
+{
+    suff(sffx,s);
+    int n = s.size();
+    int lcpsum = 0;
+    int inv[n];
+    for(int i=0;i<n;i++)
+        inv[sffx[i].inx] = i;
+    int k = 0;
+    for(int i=0;i<n;i++)
+    {
+        if(inv[i] == n-1)
+        {
+            k = 0;
+            continue;
+        }
+        int j = sffx[inv[i] + 1].inx;
+        while(i+k <n && j+k <n && s[i+k] == s[j+k])
+            k++;
+        lcpsum += k;
+        if(k > 0)
+            k--;
+    }
+    return lcpsum;
+}
+//-----------------------//
+
+
+//Tarjans algo
+void dfs(vector <vector<int>> &adj,vector<int> &disc,vector<int>& vis,vector<int>& low,stack<int> &s,int node,int &tr)
+{
+    vis[node] = 1;
+    s.push(node);
+    disc[node] = low[node] = tr++;
+    for(int i=0;i<adj[node].size();i++)
+    {
+        int x = adj[node][i];
+        if(!vis[x])
+        {
+            dfs(adj,disc,vis,low,s,x,tr);
+            low[node] = min(low[node],low[x]);
+        }
+        else if(vis[x] == 1)
+            low[node] = min(low[node],disc[x]);
+    }
+    
+    if(low[node] == disc[node])
+    {
+        int u = s.top();
+        while(!s.empty() && u != node)
+        {
+            cout<<u<<" ";
+            vis[u]= 2;
+            s.pop();
+            u = s.top();
+        }
+        cout<<u<<",";
+        vis[u] = 2;
+        s.pop();
+    }
+}
+

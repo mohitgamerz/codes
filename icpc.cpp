@@ -923,3 +923,85 @@ void dfs(vector <vector<int>> &adj,vector<int> &disc,vector<int>& vis,vector<int
     }
 }
 
+//------------------------------------//
+
+//Ford Fulkerson Algo
+bool bfs(vector <vector<int>> &adj,int st,int dest,int par[],int n)
+{
+    vector <int> vis(n+1,0);
+    queue <int> q;
+    vis[st] = 1;
+    q.push(st);
+    while(!q.empty())
+    {
+        int node = q.front();
+        q.pop();
+        for(int i=1;i<=n;i++)
+        {
+            int x = adj[node][i];
+            if(x > 0 && !vis[i])
+            {
+                par[i] = node;
+                q.push(i);
+                vis[i] = 1;
+            }
+        }
+    }
+    // cout<<"k"<<endl;
+    return vis[dest] == 1;
+}
+
+
+int main()
+{
+    fast_io;
+    int t;
+    cin>>t;
+    while(t--)
+    {
+        ll n,r;
+        cin>>n>>r;
+        vector<vector<int> > adj(n+1,vector<int>(n+1,0));
+        vector<vector<int> > rg(n+1,vector<int>(n+1,0));
+        for(int i=0;i<r;i++)
+        {
+            ll a,b;
+            cin>>a>>b;
+            adj[a][b] += 1;
+            rg[a][b] += 1;
+        }
+        ll a,b,k;
+        cin>>a>>b>>k;
+        int par[n+1];
+        int flow = 0;
+        for(int i=0;i<=n;i++)
+            par[i] = i;
+        while(bfs(rg,a,b,par,n))
+        {
+            int v = b,mm = 1e7;
+            while(v != a)
+            {
+                int u = par[v];
+                mm = min(rg[u][v],mm);
+                v = par[v];
+            }
+            v = b;
+             while(v != a)
+            {
+                int u = par[v];
+                rg[u][v] -= mm;
+                rg[v][u] += mm;
+                v = par[v];
+            }
+            flow += mm;
+        }
+        // cout<<flow<<endl;
+        if(flow > k)
+            cout<<"YES"<<endl;
+        else
+            cout<<"NO"<<endl;
+    }
+}
+
+//---------------------------//
+

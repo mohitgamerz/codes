@@ -1004,4 +1004,71 @@ int main()
 }
 
 //---------------------------//
+// KMP //
+void constructpi(string p,vector <int> &pi)
+{
+	pi[1] = 0;
+	int k = 0;
+	for(int i=2;i<=p.size();i++)
+	{
+		while( k > 0 && p[k] != p[i-1])
+			k = pi[k];
+		if ( p[k] == p[i-1])
+			k++;
+		pi[i] = k;
+	}
+}
 
+void kmp (string s,string p,vector <int> &pi)
+{
+	int q = 0;
+	for(int i=0;i<s.size();i++)
+	{
+		while ( q> 0 && p[q] != s[i])
+				q = pi[q];
+		if(p[q] == s[i])
+			q++;
+		if(q == p.size())
+		{
+			// cout<<i<<endl;
+			cout<<i-p.size()+1<<endl;
+			q = pi[q];
+		}
+	}
+}
+//-------------------------//
+// Z ALgorithm
+
+for (int i = 1; i < n; i++) 
+{
+    if (i > R) 
+    {
+        L = R = i;
+        while (R < n && s[R-L] == s[R]) 
+        {
+            R++;
+        }
+        z[i] = R-L; 
+        R--;
+    } 
+    else 
+    {
+        int k = i-L;
+        if (z[k] < R-i+1) 
+        {
+            z[i] = z[k];
+        } 
+        else 
+        {
+            L = i;
+            while (R < n && s[R-L] == s[R]) 
+            {
+                R++;
+            }
+            z[i] = R-L; 
+            R--;
+        }
+    }
+}
+
+//-------------------//
